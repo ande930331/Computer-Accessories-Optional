@@ -8,12 +8,12 @@ app.use(express.urlencoded({ extended: true }));
 var port = 3000;
 const path = require('path');
 var cnn = mysql.createConnection({
-  host:'localhost',
-  user:'root',
-  password:'ande20040331',
-  database:'dbreport',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   charset: 'utf8mb4'
-})
+});
 cnn.connect(function (err) {
   if (err) throw err;
   console.log("Connected!");
