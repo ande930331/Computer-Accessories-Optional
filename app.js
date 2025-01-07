@@ -14,6 +14,7 @@ var cnn = mysql.createConnection({
   user:'root',
   password: 'ande20040331',
   database: 'dbreport',
+  port: 3306,
   charset: 'utf8mb4'
 });
 cnn.connect(function (err) {
