@@ -10,7 +10,11 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "postinstall": "npm rebuild bcrypt --build-from-source"
+  },
+  "engines": {
+  "node": ">=18.x"
   },
   "keywords": [],
   "author": "",
