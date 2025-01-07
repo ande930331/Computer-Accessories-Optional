@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>購物車</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { color: #333; text-align: center; }
+    #cart-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    #cart-table th, #cart-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    #cart-table th { background-color: #f4f4f4; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    button:hover { background-color: #0066cc; color: white; }
+  </style>
+</head>
+<body>
+  <h1>購物車</h1>
+  <table id="cart-table">
+    <thead>
+      <tr>
+        <th>商品名稱</th>
+        <th>價格</th>
+        <th>數量</th>
+        <th>總價</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <div style="margin-top: 20px;">
+    <button id="checkout" style="margin-right: 10px;">結帳</button>
+    <button id="back-home">回主頁</button>
+  </div>
+  <script>
+    // 加載購物車
+    function loadCart() {
+      fetch('/api/cart', { credentials: 'include' })
+        .then(response => {
+          if (!response.ok) throw new Error('Failed to load cart');
+          return response.json();
+        })
+        .then(cartItems => {
+          const cartTableBody = document.querySelector('#cart-table tbody');
+          cartTableBody.innerHTML = ''; // 清空表格
+          cartItems.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${item.product_name}</td>
+              <td>$${item.price.toFixed(2)}</td>
+              <td>${item.quantity}</td>
+              <td>$${item.total_price.toFixed(2)}</td>
+              <td>
+                <button onclick="deleteCartItem(${item.item_id})">刪除</button>
+                <button onclick="editCartItem(${item.item_id}, '${item.product_name}', ${item.quantity})">修改</button>
+              </td>
+            `;
+            cartTableBody.appendChild(row);
+          });
+        })
+        .catch(err => console.error('Failed to load cart:', err));
+    }
+
+    // 刪除購物車項目
+    function deleteCartItem(itemId) {
+    fetch(`/api/cart/${itemId}`, { method: 'DELETE', credentials: 'include' })
+    .then(response => {
+      if (!response.ok) throw new Error('Failed to delete item');
+      alert('成功刪除商品');
+      loadCart(); // 重新加載購物車
+    })
+    .catch(err => console.error('Failed to delete item:', err));
+    }
+    // 修改購物車項目數量
+    function editCartItem(itemId, productName, currentQuantity) {
+    const newQuantity = prompt(`請輸入新的數量（目前數量: ${currentQuantity}）`, currentQuantity);
+    if (newQuantity === null || newQuantity.trim() === '') return;
+
+    fetch(`/api/cart/${itemId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ quantity: parseInt(newQuantity, 10) }),
+    credentials: 'include'
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Failed to update item');
+      alert('成功修改商品數量');
+      loadCart(); // 重新加載購物車
+    })
+    .catch(err => console.error('Failed to update item:', err));
+    }
+    // 結帳按鈕功能
+    document.getElementById('checkout').addEventListener('click', () => {
+      fetch('/api/checkout', { method: 'POST', credentials: 'include' })
+        .then(response => {
+          if (!response.ok) throw new Error(`Checkout failed: ${response.statusText}`);
+          alert('結帳成功！');
+          loadCart(); // 清空購物車
+        })
+        .catch(err => console.error('Failed to checkout:', err));
+    });
+
+    // 綁定回主頁按鈕
+    document.getElementById('back-home').addEventListener('click', () => {
+      window.location.href = '/index.html'; // 替換為主頁的實際路徑
+    });
+
+    // 初次加載購物車
+    loadCart();
+  </script>
+</body>
+</html>

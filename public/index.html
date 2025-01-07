@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>電腦配件選配系統</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h2 {
+      color: #2a442c;
+      text-align: center;
+    }
+    #user-info {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      background-color: #110022;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #6969ebaa;
+    }
+    select {
+      width: 19%;
+      padding: 8px;
+      margin-bottom: 10px;
+    }
+    form {
+      max-width: 300px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 40px;
+    }
+    table, th, td {
+      border: 2px solid hsl(0, 14%, 12%);
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    td:last-of-type {
+      text-align: center;
+    }
+    thead,
+    tfoot {
+      background-color: rgb(228 240 245);
+    }
+    .quantity-group {
+      margin: 3px 0;
+    }
+    .quantity-group input {
+      width: 20px;
+      text-align: center;
+    }
+    .qtyplus, .qtyminus {
+      margin: 0 2px;
+      padding: 1px 10px;
+      cursor: pointer;
+    }
+  input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+  }
+
+  </style>
+</head>
+<body>
+  <header>
+    <h2>Welcome!</h2>
+    <div id="user-info">
+      <button id="login-button" onclick="location.href='login.html'">登入</button>
+      <button id="register-button" onclick="location.href='register.html'">註冊</button>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    </div>
+  </header>
+
+  <h4>選擇電腦配件類型</h4>
+  <label for="part">分類：</label>
+  <select id="part">
+    <option>----------請選擇配件類型----------</option>
+  </select>
+    <!-- 數量調整區 -->
+    <div class="quantity-group" style="display:none;">
+      <label id="selected-category">未選擇</label>
+      <input type="text" id="quantity" value="0">
+      <button class="qtyplus">+</button>
+      <button class="qtyminus">-</button>
+    </div>
+  <table id="products-table" style="display:none;">
+    <thead>
+      <tr>
+        <th>請勾選產品</th>
+        <th>商品名稱</th>
+        <th>價格</th>
+        <th>描述</th>
+        <th>數量</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <script>
+    let selectedCategoryName = '';
+    // 動態加載配件分類
+    fetch('/api/parts')
+      .then(response => response.json())
+      .then(data => {
+        const select = document.getElementById('part');
+        data.forEach(item => {
+          const option = document.createElement('option');
+          option.value = item.category_id;
+          option.textContent = item.name;
+          select.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+      document.getElementById('part').addEventListener('change', function() {
+      const categoryId = this.value;
+      selectedCategoryName = this.options[this.selectedIndex].text;
+
+      if (categoryId) {
+        // 更新選擇的分類名稱
+        document.getElementById('selected-category').textContent = `選擇的商品：${selectedCategoryName}`;
+        fetch(`/api/products/${categoryId}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            const table = document.getElementById('products-table');
+            const tbody = table.querySelector('tbody');
+            const row = document.createElement('tr');
+            // 清空表格
+            tbody.innerHTML = '';
+
+            // 動態添加商品數據
+            if (data.length > 0) {
+              data.forEach(product => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                  <td>
+                    <input type="checkbox" id="checkbox-${product.product_id}" name="product-checkbox" value="${product.product_id}">
+                  </td>
+                  <td>${product.name}</td>
+                  <td> $ ${product.price}</td>
+                  <td>${product.description}</td>
+                  <td>
+                    <div class="quantity-group">
+                      <input type="text" class="quantity-input" data-product-id="${product.product_id}" value="0">
+                      <button class="qtyplus" data-product-id="${product.product_id}">+</button>
+                      <button class="qtyminus" data-product-id="${product.product_id}">-</button>
+                    </div>
+                  </td>
+                `;
+                tbody.appendChild(row);
+              });
+              table.style.display = 'table';
+            } else {
+              table.style.display = 'none';
+              alert('此分類下無商品');
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching products:', error);
+          });
+      } else {
+        document.querySelector('.quantity-group').style.display = 'none';
+        document.getElementById('products-table').style.display = 'none';
+      }
+    });
+    document.getElementById('products-table').addEventListener('click', function(event) {
+  const target = event.target;
+
+  // 處理加號按鈕
+  if (target.classList.contains('qtyplus')) {
+    const productId = target.dataset.productId;
+    const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
+    const currentVal = parseInt(input.value);
+    input.value = !isNaN(currentVal) ? currentVal + 1 : 0;
+  }
+
+  // 處理減號按鈕
+  if (target.classList.contains('qtyminus')) {
+    const productId = target.dataset.productId;
+    const input = document.querySelector(`.quantity-input[data-product-id="${productId}"]`);
+    const currentVal = parseInt(input.value);
+    input.value = !isNaN(currentVal) && currentVal > 0 ? currentVal - 1 : 0;
+  }
+});
+
+fetch('/user-info', {
+    credentials: 'include' // 確保攜帶 Session cookie
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('Unauthorized');
+      return response.json();
+    })
+    .then(user => {
+      // 用戶已登入，更新右上角的按鈕
+      const userInfoDiv = document.getElementById('user-info');
+      userInfoDiv.innerHTML = `
+        歡迎，${user.username}
+        <button id="logout-button">登出</button>
+        <button id="add-to-cart">加入購物車</button>
+        <button onclick="location.href='cart.html'">查看購物車</button>
+      `;
+
+      // 登出按鈕功能
+      document.getElementById('logout-button').addEventListener('click', () => {
+        fetch('/logout', { method: 'POST', credentials: 'include' })
+          .then(() => window.location.reload())
+          .catch(err => console.error('登出錯誤:', err));
+      });
+
+      // 加入購物車按鈕功能
+      document.getElementById('add-to-cart').addEventListener('click', () => {
+        const selectedProducts = [];
+        document.querySelectorAll('input[name="product-checkbox"]:checked').forEach(checkbox => {
+          const productId = checkbox.value;
+          const quantity = parseInt(
+            document.querySelector(`.quantity-input[data-product-id="${productId}"]`).value,
+            10
+          );
+          if (quantity > 0) {
+            selectedProducts.push({ productId, quantity });
+          }
+        });
+
+        if (selectedProducts.length === 0) {
+          alert('請至少選擇一個商品');
+          return;
+        }
+
+        // 發送至後端
+        selectedProducts.forEach(product => {
+          fetch('/api/cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(product),
+            credentials: 'include'
+          })
+            .then(response => {
+              if (!response.ok) throw new Error('加入購物車失敗');
+              alert('成功加入購物車');
+            })
+            .catch(err => console.error('加入購物車錯誤:', err));
+        });
+      });
+    })
+    .catch(() => {
+      console.log('用戶未登入');
+    });
+    
+  </script>
+</body>
+</html>

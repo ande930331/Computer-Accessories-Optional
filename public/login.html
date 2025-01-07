@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登入</title>
+    <script>
+        async function loginUser(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password }),
+            });
+
+            if (response.ok) {
+                alert('登入成功！');
+                window.location.href = '/dashboard.html'; // 登入後跳轉頁面
+            } else {
+                const error = await response.text();
+                alert(`登入失敗：${error}`);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h2>登入</h2>
+    <form onsubmit="loginUser(event)">
+        <label for="username">使用者名稱</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">密碼</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">登入</button>
+    </form>
+</body>
+</html>
