@@ -7,7 +7,7 @@ const saltRounds = 10;
 const session = require('express-session');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-var port = 3000;
+var port = 3306;
 const path = require('path');
 var cnn = mysql.createConnection({
   host:'127.0.0.1',
