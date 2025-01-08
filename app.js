@@ -12,8 +12,8 @@ var mysql = require('mysql');
 var cnn = mysql.createConnection({
     host: 'mysql.railway.internal', // 資料庫內部域名
     user: 'root',         // 資料庫用戶名
-    password: 'ande20040331',     // 資料庫密碼
-    database: 'dbreport',     // 資料庫名稱
+    password: 'szCRiqdvbDZUwcFJUVzVSXUSrxmndwoX',     // 資料庫密碼
+    database: 'railway',     // 資料庫名稱
     port: 3306                     // 預設端口
 });
 
