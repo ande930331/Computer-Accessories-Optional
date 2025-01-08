@@ -1,4 +1,4 @@
-var mysql = require('mysql');
+const mysql = require('mysql2'); // 改為 mysql2
 var express = require('express');
 var app = express();
 const bcrypt = require('bcryptjs');
@@ -7,7 +7,7 @@ const saltRounds = 10;
 const session = require('express-session');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-var port = 3000;
+var port = 4000;
 const path = require('path');
 var cnn = mysql.createConnection({
   host:'localhost',
