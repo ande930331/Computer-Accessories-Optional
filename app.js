@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 const session = require('express-session');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-var port = 3000;
+var port = 3306;
 const path = require('path');
 require('dotenv').config();
 
