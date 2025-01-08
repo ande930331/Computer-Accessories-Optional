@@ -7,15 +7,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 var port = 3306;
 const path = require('path');
-var mysql = require('mysql');
-
-var cnn = mysql.createConnection({
-    host: '${{RAILWAY_PRIVATE_DOMAIN}}', // 資料庫內部域名
-    user: 'root',         // 資料庫用戶名
-    password: 'szCRiqdvbDZUwcFJUVzVSXUSrxmndwoX',     // 資料庫密碼
-    database: '${{MYSQL_DATABASE}}',     // 資料庫名稱
-    port: 3306                     // 預設端口
+const cnn = mysql.createConnection({
+  host: process.env.DB_HOST, // 使用環境變數
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 3306 // 默認端口
 });
+
+cnn.connect(err => {
+  if (err) {
+    console.error('資料庫連接失敗:', err);
+    return;
+  }
+  console.log('資料庫連接成功');
+});
+
 
 cnn.connect(function (err) {
     if (err) {
