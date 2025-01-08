@@ -1,9 +1,7 @@
-const mysql = require('mysql2'); 
+var mysql = require('mysql');
 var express = require('express');
 var app = express();
-const bcrypt = require('bcryptjs');
-const password = 'examplePassword123';
-const saltRounds = 10;
+const bcrypt = require('bcrypt');
 const session = require('express-session');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -12,10 +10,10 @@ const path = require('path');
 var cnn = mysql.createConnection({
   host:'localhost',
   user:'root',
-  password: 'ande20040331',
-  database: 'dbreport',
+  password:'ande20040331',
+  database:'dbreport',
   charset: 'utf8mb4'
-});
+})
 cnn.connect(function (err) {
   if (err) throw err;
   console.log("Connected!");
@@ -54,41 +52,41 @@ app.get('/api/products/:category_id', (req, res) => {
   });
 });
 
+// 註冊功能
 app.post('/register', (req, res) => {
-    const { username, email, password } = req.body;
+  const { username, email, password } = req.body;
 
-    if (!username || !email || !password) {
-        return res.status(400).send('All fields are required');
+  if (!username || !email || !password) {
+    return res.status(400).send('All fields are required');
+  }
+
+  cnn.query('SELECT * FROM Users WHERE username = ?', [username], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Database query failed');
     }
 
-    cnn.query('SELECT * FROM Users WHERE username = ?', [username], (err, results) => {
+    if (results.length > 0) {
+      return res.status(400).send('Username already exists');
+    }
+
+    bcrypt.hash(password, 10, (err, hashedPassword) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Password hashing failed');
+      }
+
+      const sql = 'INSERT INTO Users (username, email, password, created_at) VALUES (?, ?, ?, NOW())';
+      cnn.query(sql, [username, email, hashedPassword], (err) => {
         if (err) {
-            console.error(err);
-            return res.status(500).send('Database query failed');
+          console.error(err);
+          return res.status(500).send('Database insertion failed');
         }
-
-        if (results.length > 0) {
-            return res.status(400).send('Username already exists');
-        }
-
-        bcrypt.hash(password, 10, (err, hashedPassword) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).send('Password hashing failed');
-            }
-
-            const sql = 'INSERT INTO Users (username, email, password, created_at) VALUES (?, ?, ?, NOW())';
-            cnn.query(sql, [username, email, hashedPassword], (err) => {
-                if (err) {
-                    console.error(err);
-                    return res.status(500).send('Database insertion failed');
-                }
-                res.status(200).send('User registered successfully');
-            });
-        });
+        res.status(200).send('User registered successfully');
+      });
     });
+  });
 });
-
 
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
