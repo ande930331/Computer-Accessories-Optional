@@ -7,16 +7,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 var port = 3306;
 const path = require('path');
-require('dotenv').config();
-
 var mysql = require('mysql');
+
 var cnn = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+    host: 'mysql.railway.internal', // 資料庫內部域名
+    user: 'root',         // 資料庫用戶名
+    password: 'ande20040331',     // 資料庫密碼
+    database: 'dbreport',     // 資料庫名稱
+    port: 3306                     // 預設端口
 });
+
+cnn.connect(function (err) {
+    if (err) {
+        console.error('資料庫連接失敗:', err);
+        return;
+    }
+    console.log('資料庫連接成功');
+});
+
 
 cnn.connect(function (err) {
   if (err) throw err;
