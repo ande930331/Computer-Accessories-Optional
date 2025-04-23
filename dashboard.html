@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+</head>
+<body>
+  <header>
+    <h1>會員主頁</h1>
+    <div id="user-info">載入中...</div>
+    <button id="logout-button">登出</button>
+    <button id="home-button">回到主頁</button>
+  </header>
+  <main>
+    <p>歡迎來到會員中心。</p>
+  </main>
+  <script>
+    // 取得用戶資訊並顯示
+    fetch('/user-info', {
+      credentials: 'include'
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('未登入');
+      return response.json();
+    })
+    .then(data => {
+      document.getElementById('user-info').textContent = `歡迎, ${data.username} (${data.email})`;
+    })
+    .catch(error => {
+      console.error(error);
+      window.location.href = '/index.html'; // 未登入則跳回登入頁面
+    });
+
+    // 登出功能
+    document.getElementById('logout-button').addEventListener('click', () => {
+      fetch('/logout', { method: 'POST', credentials: 'include' })
+        .then(response => {
+          if (response.ok) {
+            window.location.href = '/index.html'; // 成功登出後跳回登入頁
+          } else {
+            alert('登出失敗');
+          }
+        })
+        .catch(err => console.error('登出錯誤:', err));
+    });
+
+    // 回到主頁功能
+    document.getElementById('home-button').addEventListener('click', () => {
+      window.location.href = '/index.html'; // 返回主頁
+    });
+  </script>
+</body>
+</html>
